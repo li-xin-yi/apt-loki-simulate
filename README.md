@@ -75,24 +75,67 @@ Loki: https://github.com/Neo23x0/Loki
 
 **Note**: To download the last version from [release](https://github.com/Neo23x0/Loki/releases) and then extract is **not** a feasible approach on Ubuntu, `.exe` cannot be executed directly on Linux.
 
-Download all source codes and enter the folder:
+First, install the last version of `yara` (**built with OpenSSL**), which may require **root user privilege** sometimes, or you will get [the same error](https://github.com/Neo23x0/Loki/issues/147) as mines. Follow `yara`'s [documentation](https://yara.readthedocs.io/en/stable/gettingstarted.html) and adjust by your environment:
 
 ```
-git clone https://github.com/Neo23x0/Loki.git
-cd ./Loki
+$ git clone https://yara.readthedocs.io/en/stable/gettingstarted.html
+$ cd yara
+$ bash ./bootstrap.sh
+$ sudo apt-get install automake libtool make gcc pkg-config libssl-dev
+$ ./configure --with-crypto
+$ make
+$ sudo make install
+```
+
+Run test cases to check if building is Okay:
+
+```
+$ make check
+```
+
+Check if `yara` is installed correctly:
+
+```
+$ yara version
+4.0.1
+```
+
+If it prints:
+
+```
+yara: error while loading shared libraries: libyara.so.4: cannot open shared object file: No such file or directory
+```
+
+Do:
+
+```
+$ su
+# sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf'
+# sudo ldconfig
+```
+
+Make sure that `yara` is installed properly and then we are going to install `loki`.
+
+Download all`loki` source codes and enter the folder:
+
+```
+$ git clone https://github.com/Neo23x0/Loki.git
+$ cd ./Loki
 ```
 
 Since `loki.py` should be interpreted by Python 2.7, first, we need to install some dependencies:
 
 ```
-pip install psutil netaddr colorama pylzma pycrypto yara-python rfc5424-logging-handler setuptools==19.2 pyinstaller==2.1
+$ pip install psutil netaddr colorama pylzma pycrypto yara-python rfc5424-logging-handler setuptools==19.2 pyinstaller==2.1
 ```
 
 After installed, Run `loki` to complete a simple IOC scan:
 
 ```
-sudo python loki.py
+$ python loki.py
 ```
+
+![](./fig/loki_welcome.png)
 
 ### Install `INetSim`
 
