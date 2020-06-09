@@ -78,7 +78,7 @@ Loki: https://github.com/Neo23x0/Loki
 First, install the last version of `yara` (**built with OpenSSL**), which may require **root user privilege** sometimes, or you will get [the same error](https://github.com/Neo23x0/Loki/issues/147) as mines. Follow `yara`'s [documentation](https://yara.readthedocs.io/en/stable/gettingstarted.html) and adjust by your environment:
 
 ```
-$ git clone https://yara.readthedocs.io/en/stable/gettingstarted.html
+$ git clone https://github.com/VirusTotal/yara.git
 $ cd yara
 $ bash ./bootstrap.sh
 $ sudo apt-get install automake libtool make gcc pkg-config libssl-dev
