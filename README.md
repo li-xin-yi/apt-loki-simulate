@@ -21,11 +21,11 @@ $ sudo apt-get update
 $ sudo apt-get upgrade
 ```
 
-Install the guest additions. <kbd>Devices</kbd> -> <kbd>Insert guest additions CD image</kbd>. If you are in scaled mode, press <kbd>Right Ctrl</kbd> + <kbd>C</kbd> to exit and the menu bar appears. if asked password, type in the password you set right now. When finishing the process, power off this VM (<kbd>Analysis Machine</kbd>).
+Install the guest additions. <kbd>Devices</kbd> -> <kbd>Insert guest additions CD image</kbd>. If you are in scaled mode, press <kbd>Right Ctrl</kbd> + <kbd>C</kbd> to exit and the menu bar appears. if asked password, type in the password you set right now. When finishing the process, power off this VM (`Analysis Machine`).
 
 ### Clone as Ubuntu Victim
 
-Clone <kbd>Analysis Machine</kbd> as <kbd>Victim 1</kbd>, Choose <kbd>Generate new MAC address for all network adapters</kbd> for <kbd>MAC address policy</kbd>. Use <kbd>Full clone</kbd>.
+Clone `Analysis Machine` as `Victim 1`, Choose <kbd>Generate new MAC address for all network adapters</kbd> for <kbd>MAC address policy</kbd>. Use <kbd>Full clone</kbd>.
 
 ### Install Windows Victim
 
@@ -69,7 +69,7 @@ First, install `git` and `pip`:
 $ sudo apt install git
 $ sudo apt install python-pip
 ```
-### Install `loki` on Analysis
+### Install `loki`
 
 Loki: https://github.com/Neo23x0/Loki
 
@@ -118,6 +118,89 @@ Download [last release](https://portswigger.net/burp/communitydownload) of `Brup
 ```
 $ bash ~/Downloads/burpsuite_community_linux_v2020_5.sh
 ```
+
+## Network Settings
+
+As it mentioned in the [original post](https://blog.christophetd.fr/malware-analysis-lab-with-virtualbox-inetsim-and-burp/):
+
+> As a reminder, we want to set up an **isolated network** containing our three VMs. This network will not be able to access the Internet. Also, we want the **analysis machine to act as a network gateway to the victim machines** in order to easily be able to intercept the network traffic and to simulate various services such as DNS or HTTP.
+
+First, we open the <kbd>Settings</kbd> -> <kbd>Network<kbd>  of those 3 VMs, change their <kbd> Adapter 1</kbd> -> <kbd>Attached to</kbd> to `Internal Network`, fill <kbd>Name</kbd> field with `apt-network`.
+
+### Ubuntu Analysis: Gateway `10.0.0.1`
+
+To make `Analysis Machine` serve as a gateway, on it:
+
+type `ifconfig` and get its Ethernet interface name as `enp0s3`. Open and edit its config by:
+
+```
+$ sudo gedit /etc/network/interfaces
+```
+
+Append those lines to the ending:
+
+```
+auto enp0s3
+iface enp0s3 inet static
+ address 10.0.0.1
+ netmask 255.255.255.0
+```
+
+Save and exit `gedit`.
+
+Update:
+
+```
+$ sudo ifup enp0s3
+```
+
+Now it has a static IP address as `10.0.0.1`, we can verify it via:
+
+```
+$ ifconfig
+```
+
+**Keep this VM alive for validation later.**
+
+### Victim 1: Ubuntu Victim `10.0.0.2`
+
+Similarly, edit `/etc/network/interfaces`, with the following lines appended:
+
+```
+auto enp0s3
+iface enp0s3 inet static
+ address 10.0.0.2
+ gateway 10.0.0.1
+ netmask 255.255.255.0
+ dns-nameservers 10.0.0.1
+```
+
+Which indicates that `Victim 1` regards `Analysis Machine` as its gateway and DNS server.
+
+Update the config:
+
+```
+$ sudo ifup enp0s3
+$ sudo service networking restart
+```
+
+**Keep this VM alive for validation later.**
+
+
+### Victim 2: Windows Victim `10.0.0.3`
+
+Similar to Victim 1, Open its network settings:
+
+![](./fig/windows_network_settings.png)
+
+Change the network adapter properties as
+
+![](./fig/windows_subnet.png)
+
+Finally, `ping` each other by IP address using `cmd` or `terminal` on each VM. If all VMs are reachable but unable to connect with external addresses, the isolated network is set.
+
+**Note**: If `Victim 2` cannot be pinged by other VMs, try to turn off its Windows built-in firewall.
+
 
 ## References
 
