@@ -244,6 +244,13 @@ Finally, `ping` each other by IP address using `cmd` or `terminal` on each VM. I
 
 **Note**: If `Victim 2` cannot be pinged by other VMs, try to turn off its Windows built-in firewall.
 
+## Restore Clean States Snapshot for Victims
+
+Now, **both 2 victim VMs** are in a clean (uninjected) state. We can power them off and create snapshots of current states for back-up:
+
+Take snapshots for 2 victims and name snapshots as `clean state`:
+
+![](./fig/snapshot.png)
 
 ## References
 
