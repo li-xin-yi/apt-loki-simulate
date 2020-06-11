@@ -244,13 +244,176 @@ Finally, `ping` each other by IP address using `cmd` or `terminal` on each VM. I
 
 **Note**: If `Victim 2` cannot be pinged by other VMs, try to turn off its Windows built-in firewall.
 
-## Restore Clean States Snapshot for Victims
+## Restore Clean-state Snapshot for Victims
 
 Now, **both 2 victim VMs** are in a clean (uninjected) state. We can power them off and create snapshots of current states for back-up:
 
 Take snapshots for 2 victims and name snapshots as `clean state`:
 
 ![](./fig/snapshot.png)
+
+## Analyze Network Traffic
+
+### `INetSim` Part
+
+On `Analysis Machine`: Create a directory `analysis` to store `INetSim` configurations for each analysis (in a separate subdirectory):
+
+```
+$ mkdir analysis
+```
+
+Start an example (`test-analysis`) for testing:
+
+```
+$ mkdir analysis/test-analysis
+```
+
+Use the default configuration:
+
+```
+$ cp /etc/inetsim/inetsim.conf analysis/test-analysis
+$ sudo cp -r /var/lib/inetsim analysis/test-analysis/data
+$ cd analysis/test-analysis
+$ sudo chmod -R 777 data
+```
+
+Edit `inetsim.conf`, replace the lines
+
+```
+#service_bind_address 10.10.10.1 (any address possible)
+
+#dns_default_ip    10.10.10.1 (any address possible)
+
+#https_bind_port 443
+```
+
+with
+
+```
+service_bind_address  0.0.0.0
+
+dns_default_ip    10.0.0.1
+
+https_bind_port 8443
+```
+
+and save.
+
+Now, `INetSim` will update configurations as:
+
+- listen on local ports -> all reachable machine in virtual network
+- resolve all domain names to `127.0.0.1` -> `10.0.0.1`
+- Bind HTTP server to port `443` -> `8433` (for that `INetSim`'s SSL supports is too limited, leave SSL traffic for `Brup` later)
+
+> we need to disable `systemd-resolved`, which is a local DNS server shipped by default with Ubuntu and will conflict with `INetSim`'s DNS server.
+
+```
+$ sudo systemctl disable systemd-resolved.service
+$ sudo service systemd-resolved stop
+```
+
+Now, let's start `INetSim`:
+
+```
+$ sudo inetsim --data data --conf inetsim.conf
+INetSim 1.3.2 (2020-05-19) by Matthias Eckert & Thomas Hungenberg
+Using log directory:      /var/log/inetsim/
+Using data directory:     data/
+Using report directory:   /var/log/inetsim/report/
+Using configuration file: /home/osboxes/analysis/test-analysis/inetsim.conf
+Parsing configuration file.
+Configuration file parsed successfully.
+=== INetSim main process started (PID 2717) ===
+Session ID:     2717
+Listening on:   0.0.0.0
+Real Date/Time: 2020-06-11 04:23:03
+Fake Date/Time: 2020-06-11 04:23:03 (Delta: 0 seconds)
+ Forking services...
+  * time_37_tcp - started (PID 2734)
+  * ntp_123_udp - started (PID 2730)
+  * irc_6667_tcp - started (PID 2729)
+  * time_37_udp - started (PID 2735)
+  * daytime_13_tcp - started (PID 2736)
+  * ident_113_tcp - started (PID 2732)
+  * echo_7_tcp - started (PID 2738)
+  * discard_9_tcp - started (PID 2740)
+  * quotd_17_tcp - started (PID 2742)
+  * daytime_13_udp - started (PID 2737)
+  * finger_79_tcp - started (PID 2731)
+  * syslog_514_udp - started (PID 2733)
+  * discard_9_udp - started (PID 2741)
+  * dns_53_tcp_udp - started (PID 2719)
+  * dummy_1_udp - started (PID 2747)
+  * echo_7_udp - started (PID 2739)
+  * quotd_17_udp - started (PID 2743)
+  * chargen_19_udp - started (PID 2745)
+  * chargen_19_tcp - started (PID 2744)
+  * tftp_69_udp - started (PID 2728)
+  * dummy_1_tcp - started (PID 2746)
+  * ftps_990_tcp - started (PID 2727)
+  * pop3_110_tcp - started (PID 2724)
+  * pop3s_995_tcp - started (PID 2725)
+  * smtp_25_tcp - started (PID 2722)
+  * ftp_21_tcp - started (PID 2726)
+  * smtps_465_tcp - started (PID 2723)
+  * http_80_tcp - started (PID 2720)
+  * https_8443_tcp - started (PID 2721)
+ done.
+```
+
+![](./fig/inetsim_start.png)
+
+---
+
+Some issues you may meet when starting `INetSim`:
+
+### Issue 1
+
+If you come across the error:
+
+```
+PIDfile '/var/run/inetsim.pid' exists - INetSim already running?
+```
+
+Just "kill" it and the restart `INetSim`:
+
+```
+sudo rm /var/run/inetsim.pid
+```
+
+### Issue 2
+
+If some services fail to start, try to edit `service_bind_address` as `10.0.0.1` then restart. If the solution works, it means some processes block the ports associated with `0.0.0.0`. See [another answer by me](https://stackoverflow.com/a/62320178/4710264). List all those process candidates with their `pid` in the last column:
+
+```
+sudo netstat -tulpn
+```
+
+Kill those suspicious processes:
+
+```
+sudo kill -9 <pid>
+```
+
+---
+
+Power on `Victim 1`:
+
+Open Firefox, <kbb>Preferences</kbb> -> <kbb>Cookies and Site Data</kbb> -> <kbb>Clear data</kbb>, check `Cookies and Site Data` and `Cached Web Content` to clear all history content data in it. Then open a website, for instance, `google.com` :
+
+![](./fig/hijack.png)
+
+Apparently, it is hijacked by `INetSim`. This fake page, which is the default `HTML` sample file contained in `INetSim`, is hosted in `Analysis Machine`'s `data/http/fakefiles/sample.html.`.
+
+---
+
+Return to `Analysis Machine`.
+
+Finish `INetSim` with <kbb>Ctrl</kbb> + <kbb>C</kbb>. It will print the location of report/log file. Open the file with `sudo gedit` or display it with `sudo cat`. We can find relevant network traffics with:
+
+![](./fig/test_report.png)
+
+
 
 ## References
 
