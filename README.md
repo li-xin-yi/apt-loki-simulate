@@ -399,7 +399,7 @@ sudo kill -9 <pid>
 
 Power on `Victim 1`:
 
-Open Firefox, <kbb>Preferences</kbb> -> <kbb>Cookies and Site Data</kbb> -> <kbb>Clear data</kbb>, check `Cookies and Site Data` and `Cached Web Content` to clear all history content data in it. Then open a website, for instance, `google.com` :
+Open Firefox, <kbd>Preferences</kbd> -> <kbd>Cookies and Site Data</kbd> -> <kbd>Clear data</kbd>, check `Cookies and Site Data` and `Cached Web Content` to clear all history content data in it. Then open a website, for instance, `google.com` :
 
 ![](./fig/hijack.png)
 
@@ -409,7 +409,7 @@ Apparently, it is hijacked by `INetSim`. This fake page, which is the default `H
 
 Return to `Analysis Machine`.
 
-Finish `INetSim` with <kbb>Ctrl</kbb> + <kbb>C</kbb>. It will print the location of report/log file. Open the file with `sudo gedit` or display it with `sudo cat`. We can find relevant network traffics with:
+Stop `INetSim` by <kbd>Ctrl</kbd> + <kbd>C</kbd>. It will print the location of report/log file. Open the file with `sudo gedit` or display it with `sudo cat`. We can find relevant network traffics with:
 
 ![](./fig/test_report.png)
 
