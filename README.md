@@ -63,11 +63,12 @@ By the way, for convenience, all VM's general setting can choose `Bidirectional`
 
 All following works in this section are done on `Ubuntu Analysis`.
 
-First, install `git` and `pip`:
+First, install `git`, `pip` and `curl`:
 
 ```
 $ sudo apt install git
 $ sudo apt install python-pip
+$ sudo apt install curl
 ```
 ### Install `loki`
 
@@ -303,7 +304,7 @@ Now, `INetSim` will update configurations as:
 
 - listen on local ports -> all reachable machine in virtual network
 - resolve all domain names to `127.0.0.1` -> `10.0.0.1`
-- Bind HTTP server to port `443` -> `8433` (for that `INetSim`'s SSL supports is too limited, leave SSL traffic for `Brup` later)
+- Bind HTTP server to port `443` -> `8433` (for that `INetSim`'s SSL supports is too limited, leave SSL traffic for `Burp` later)
 
 > we need to disable `systemd-resolved`, which is a local DNS server shipped by default with Ubuntu and will conflict with `INetSim`'s DNS server.
 
@@ -367,7 +368,7 @@ Fake Date/Time: 2020-06-11 04:23:03 (Delta: 0 seconds)
 
 Some issues you may meet when starting `INetSim`:
 
-### Issue 1
+#### Issue 1
 
 If you come across the error:
 
@@ -381,7 +382,13 @@ Just "kill" it and the restart `INetSim`:
 sudo rm /var/run/inetsim.pid
 ```
 
-### Issue 2
+If you are sure that there is really an `INetSim` in background (check by `top`), stop it
+
+```
+$ service inetsim stop
+```
+
+#### Issue 2
 
 If some services fail to start, try to edit `service_bind_address` as `10.0.0.1` then restart. If the solution works, it means some processes block the ports associated with `0.0.0.0`. See [another answer by me](https://stackoverflow.com/a/62320178/4710264). List all those process candidates with their `pid` in the last column:
 
@@ -412,6 +419,139 @@ Return to `Analysis Machine`.
 Stop `INetSim` by <kbd>Ctrl</kbd> + <kbd>C</kbd>. It will print the location of report/log file. Open the file with `sudo gedit` or display it with `sudo cat`. We can find relevant network traffics with:
 
 ![](./fig/test_report.png)
+
+### `Burp` Part (SSL interception)
+
+`Burp` will run as a transparent proxy in front of `INetSim`.
+
+It is the role `Burp` plays in an SSL interception attack:
+
+
+![](https://blog.christophetd.fr/wp-content/uploads/2017/06/ssl-network.png)
+
+Start `Burp` with root privilege, otherwise, it cannot access port 443:
+
+```
+$ cd ~/BurpSuiteCommunity
+$ su
+# sudo ./BurpSuiteCommunity
+```
+
+1. Create a Temporarily project (no other available options)
+2. Check "Use Burp defaults"
+3. Start Burp
+
+Enter <kbd>Proxy</kbd> -> <kbd>Options</kbd> panel, Edit the row in Proxy Listeners:
+
+- Binding tab
+    - Bind to port: 443
+    - Bind to address: all interfaces
+- Request handling tab:
+    - Redirect to host: localhost
+    - Redirect to port: 8443
+    - Check Support invisible proxying
+
+Check `Running`, if it fails because port 443 is occupied, see [Issue 1](#issue-1).
+
+> By default, Burp intercepts the incoming requests and waits for you to explicitly let them pass through. To avoid this, go to the Intercept tab and click the button <kbd>Intercept is on</kbd> to disable it.
+> Since Burp Free doesn’t allow you to save a project, you can export the settings we just made in order to import them next time you start Burp. To do this, use `Burp` > <kbd>Project options</kbd> > <kbd>Save</kbd> project options.
+
+Save the options as `test` in `/root`.
+
+Start `INetSim`
+
+```
+$ sudo inetsim --data data --conf inetsim.conf
+```
+
+Keep it running, meanwhile, test:
+
+```
+$ curl --insecure https://localhost
+```
+
+We will get:
+
+```html
+<html>
+  <head>
+    <title>INetSim default HTML page</title>
+  </head>
+  <body>
+    <p></p>
+    <p align="center">This is the default HTML page for INetSim HTTP server fake mode.</p>
+    <p align="center">This file is an HTML document.</p>
+  </body>
+</html>
+```
+
+It is what we see in [previous subsection](#inetsim-part).
+
+
+#### Importing `Burp`'s CA certificate on our victim machines
+
+Power on `Victim 2` (Win 10), try to open https://github.com/ (or any HTTPS link) on Edge browser, it alerts:
+
+![](./fig/edge_insecure.png)
+
+> This is because Burp generates a SSL certificate signed by its own CA certificate, which our victim machine doesn’t trust for now.
+
+Back to `Analysis Machine`. In `Brup`, enter <kbd>Proxy</kbd> -> <kbd>Options</kbd> -> <kbd>Add</kbd> , add a new proxy listener on port `8080` and all interfaces.
+
+---
+
+Now, from `Victim 2`, open http://10.0.0.1:8080/
+
+![](./fig/8080CA.png)
+
+Click on `CA Certificate` to download Burp’s CA certificate. Save and open the file, Install Certificate:
+
+Choose the field
+
+- Place all certificates in the following store: Trusted Root Certification Authorities
+
+Then open https://github.com/ on Edge Browser or IE, the fake page is trusted with SSL:
+
+![](./fig/win_https_github.png)
+
+
+---
+
+On `Victim 1`, similarly, visit http://10.0.0.1:8080/ on browser and download Burp’s CA certificate (Suppose it is saved as `~/Downloads/cacert.der`).
+
+Convert the certificate to the appropriate format (`.crt`)
+
+```
+$ openssl x509 -in ~/Downloads/cacert.der -inform DER -out burp.crt
+```
+
+Copy it to `/usr/local/share/ca-certificates`
+
+```
+$ sudo cp burp.crt /usr/local/share/ca-certificates/
+```
+
+Run
+
+```
+$ sudo update-ca-certificates
+1 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+```
+
+> Firefox by default doesn't use the system's certificate store. If you want the SSL connection to work properly in Firefox as well, go to the Firefox settings into Advanced > Certificates > Import. Choose `burp.crt`, check Trust this CA to identify websites
+
+In Firefox, Search for "Certificates" in the Preferences page, <kbd>View Certificates</kbd> -><kbd>Authorities</kbd> Panel - > <kbd>Import</kbd> Button -> Select `burp.crt` -> check "Trust this CA to identify websites".
+
+It works:
+
+![](./fig/fake_https_github.png)
+
+---
+
+Now, power off and take new snapshots for both 2 victims, name the state as "clean state with burp CA".
+
 
 
 
