@@ -59,20 +59,20 @@ Now, the VM can be powered off.
 
 By the way, for convenience, all VM's general setting can choose `Bidirectional` for <kbd>shared clipboard</kbd> and <kbd>Drag'n'Drop</kbd>.
 
-## Build Analysis and Simulation Tools on Analysis
-
-All following works in this section are done on `Ubuntu Analysis`.
-
-First, install `git`, `pip` and `curl`:
-
-```
-$ sudo apt install git
-$ sudo apt install python-pip
-$ sudo apt install curl
-```
-### Install `loki`
+## Install `loki` for all VMs
 
 Loki: https://github.com/Neo23x0/Loki
+
+### Windows 10
+
+- Download the whole release `.zip` file of the last version from [here](https://github.com/Neo23x0/Loki/releases). 
+- Extract the file to a directory. 
+- Enter the folder
+- Right-click `loki.exe` and select "Run as Administrator"
+
+![](./fig/win_loki.png)
+
+### Ubuntu
 
 **Note**: To download the last version from [release](https://github.com/Neo23x0/Loki/releases) and then extract is **not** a feasible approach on Ubuntu, `.exe` cannot be executed directly on Linux.
 
@@ -81,8 +81,9 @@ First, install the last version of `yara` (**built with OpenSSL**), which may re
 ```
 $ git clone https://github.com/VirusTotal/yara.git
 $ cd yara
-$ bash ./bootstrap.sh
 $ sudo apt-get install automake libtool make gcc pkg-config libssl-dev
+$ sudo apt-get install flex bison
+$ bash ./bootstrap.sh
 $ ./configure --with-crypto
 $ make
 $ sudo make install
@@ -137,6 +138,19 @@ $ python loki.py
 ```
 
 ![](./fig/loki_welcome.png)
+
+## Build Analysis and Simulation Tools on Analysis
+
+All following works in this section are done on `Ubuntu Analysis`.
+
+First, install `git`, `pip` and `curl`:
+
+```
+$ sudo apt install git
+$ sudo apt install python-pip
+$ sudo apt install curl
+```
+
 
 ### Install `INetSim`
 
