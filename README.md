@@ -316,7 +316,7 @@ $ sudo service systemd-resolved stop
 Now, let's start `INetSim`:
 
 ```
-$ sudo inetsim --data data --conf inetsim.conf
+$ sudo inetsim --data ./data --conf inetsim.conf
 INetSim 1.3.2 (2020-05-19) by Matthias Eckert & Thomas Hungenberg
 Using log directory:      /var/log/inetsim/
 Using data directory:     data/
@@ -551,6 +551,95 @@ It works:
 ---
 
 Now, power off and take new snapshots for both 2 victims, name the state as "clean state with burp CA".
+
+## Transfer Files between VMs and Host
+
+### Create a Shared Folder for analysis
+
+To create such a folder on a `Ubuntu Analysis`, Choose it in VirtualBox:
+
+<kbd>Settings</kbd> -> <kbd>Shared Folder</kbd> -> <kbd>Create new folders
+
+For example:
+
+![](./fig/shared_folder.png)
+
+Select a folder in our local machine,Check "Make Permanent".
+
+Now, on current VM, run:
+
+```
+$ mkdir ~/analysis-src
+$ sudo mount -t vboxsf -o uid=$UID,gid=$(id -g) analysis-src ~/analysis-src
+```
+
+In my case, the link between `C:\lab\apt-loki-simulate\src\analysis-src` on local host machine and `/home/osboxes/analysis-src` on `Ubuntu Analysis` is set.
+
+### Transfer Files to Victim VMs
+
+It's not a good idea to create shared folders on victim VMs, because we should keep them in sandboxes in case our local machine environment suffers from malware.
+
+So we have to compromise to send files to them via `Ubuntu Analysis` and the virtual network.
+
+#### An alternative way on `Victim 1`
+
+Listen on a local TCP port by `netcat`:
+
+```
+$ nc -lvp 4444 > file.exe
+Listening on [0.0.0.0] (family 0, port 4444)
+```
+
+Once it receives anything, it will export what it receives to `file.ex`.
+
+For testing, we send a file from `Ubuntu Analysis` to `file.exe`:
+
+```
+$ echo "test" > test.exe
+$ cat test.exe | nc 10.0.0.2 4444
+```
+
+We can check if we get the file on `Victim 1`:
+
+```
+$ cat file.exe
+test
+```
+
+#### An alternative way on `Victim 2`
+
+For windows, we can download files from `INetSim` server hosted by `Ubuntu Analysis`.
+
+Edit `inetsim.conf`, Replace:
+
+```
+http_fakefile exe  sample_gui.exe x-msdos-program
+```
+
+By
+
+```
+http_fakefile exe  test.exe x-msdos-program
+```
+
+
+
+
+put `test.exe`   in `./data/http/fakefiles`, for example:
+
+```
+$ cp cp test.exe ~/analysis/test-analysis/data/http/fakefiles/
+```
+
+And then start `INetSim`.
+
+Browser any link with suffix `.exe` (e.g.`google.com/test.exe`) on `Victim 2` to download `test.exe`. Or run `cmd`:
+
+```
+> curl google.com/test.exe > test.exe
+> type test.exe
+test
+```
 
 
 
