@@ -655,6 +655,29 @@ Browser any link with suffix `.exe` (e.g.`google.com/test.exe`) on `Victim 2` to
 test
 ```
 
+## Demo: the TeslaCrypt ransomware
+
+Download [tooZoo](https://github.com/ytisf/theZoo) in `zip` format to the [shared folder](./src/analysis-src) in host machine.
+
+**Note**: Be careful to play with malware on your physical machine. Remove the package after transferred to VMs in case of misoperations.
+
+### Send it to `Analysis Machine`:
+
+On `Analysis Machine`, run:
+
+```
+sudo mount -t vboxsf -o uid=$UID,gid=$(id -g) analysis-src ~/analysis-src
+```
+
+Sync the files in `~/analysis-src` if you can't see it immediately. Copy it to any other folder.
+
+Extract all files:
+
+```
+unzip theZoo-master.zip
+```
+
+
 
 
 
