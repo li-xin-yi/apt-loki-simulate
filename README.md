@@ -1,5 +1,39 @@
 # An Advanced Persistent Threat Simulation Example under Loki Detection
 
+- [An Advanced Persistent Threat Simulation Example under Loki Detection](#an-advanced-persistent-threat-simulation-example-under-loki-detection)
+  - [Set-up VMs](#set-up-vms)
+    - [Basic Ubuntu Analysis](#basic-ubuntu-analysis)
+    - [Clone as Ubuntu Victim](#clone-as-ubuntu-victim)
+    - [Install Windows Victim](#install-windows-victim)
+  - [Install `loki` for all VMs](#install-loki-for-all-vms)
+    - [Windows 10](#windows-10)
+    - [Ubuntu](#ubuntu)
+  - [Build Analysis and Simulation Tools on Analysis](#build-analysis-and-simulation-tools-on-analysis)
+    - [Install `INetSim`](#install-inetsim)
+    - [Install `Burp`](#install-burp)
+  - [Network Settings](#network-settings)
+    - [Ubuntu Analysis: Gateway `10.0.0.1`](#ubuntu-analysis-gateway-10001)
+    - [Victim 1: Ubuntu Victim `10.0.0.2`](#victim-1-ubuntu-victim-10002)
+    - [Victim 2: Windows Victim `10.0.0.3`](#victim-2-windows-victim-10003)
+  - [Restore Clean-state Snapshot for Victims](#restore-clean-state-snapshot-for-victims)
+  - [Analyze Network Traffic](#analyze-network-traffic)
+    - [`INetSim` Part](#inetsim-part)
+      - [Issue 1](#issue-1)
+      - [Issue 2](#issue-2)
+    - [`Burp` Part (SSL interception)](#burp-part-ssl-interception)
+      - [Importing `Burp`'s CA certificate on our victim machines](#importing-burps-ca-certificate-on-our-victim-machines)
+  - [Transfer Files between VMs and Host](#transfer-files-between-vms-and-host)
+    - [Create a Shared Folder for analysis](#create-a-shared-folder-for-analysis)
+    - [Transfer Files to Victim VMs](#transfer-files-to-victim-vms)
+      - [An alternative way on `Victim 1`](#an-alternative-way-on-victim-1)
+      - [An alternative way on `Victim 2`](#an-alternative-way-on-victim-2)
+  - [Demo: the TeslaCrypt ransomware](#demo-the-teslacrypt-ransomware)
+    - [Send it to `Analysis Machine`:](#send-it-to-analysis-machine)
+    - [Send the malicious `exe` to `Victim 2`](#send-the-malicious-exe-to-victim-2)
+  - [References](#references)
+
+
+
 ## Set-up VMs
 
 ### Basic Ubuntu Analysis 
