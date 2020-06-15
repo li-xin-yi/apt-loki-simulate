@@ -666,7 +666,7 @@ Download [tooZoo](https://github.com/ytisf/theZoo) in `zip` format to the [share
 On `Analysis Machine`, run:
 
 ```
-sudo mount -t vboxsf -o uid=$UID,gid=$(id -g) analysis-src ~/analysis-src
+$ sudo mount -t vboxsf -o uid=$UID,gid=$(id -g) analysis-src ~/analysis-src
 ```
 
 Sync the files in `~/analysis-src` if you can't see it immediately. Copy it to any other folder.
@@ -674,13 +674,13 @@ Sync the files in `~/analysis-src` if you can't see it immediately. Copy it to a
 Extract all files:
 
 ```
-unzip theZoo-master.zip
+$ unzip theZoo-master.zip
 ```
 
 All files (including some malware instances in `theZoo`) are now in `./theZoo-master`. Enter the path of `loki`, try to scan the directory to find if malware exists:
 
 ```
-sudo python loki.py -p ~/Downloads/theZoo-master
+$ sudo python loki.py -p ~/Downloads/theZoo-master
 ```
 
 Of course, nothing found.
@@ -690,8 +690,8 @@ Of course, nothing found.
 Find the TeslaCrypt ransomware 
 
 ```
-cd ~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt
-unzip Ransomware.TeslaCrypt.zip
+$ cd ~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt
+$ unzip Ransomware.TeslaCrypt.zip
 ```
 
 password (`injected`) is in `~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt/Ransomware.TeslaCrypt.pass`. It contains three different files that can be used as `exe`.
@@ -699,7 +699,7 @@ password (`injected`) is in `~/Downloads/theZoo-master/malwares/Binaries/Ransomw
 Now, restart `loki` to scan this subdirectory:
 
 ```
-sudo python loki.py -p ~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt
+$ sudo python loki.py -p ~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt
 ```
 
 It found out that one of them is suspicious by matching the hash value:
@@ -709,7 +709,7 @@ It found out that one of them is suspicious by matching the hash value:
 Copy one undetected extracted file to `INetSim` server's data folder:
 
 ```
-cp 51B4EF5DC9D26B7A26E214CEE90598631E2EAA67 ~/analysis/test-analysis/data/htt
+$ cp 51B4EF5DC9D26B7A26E214CEE90598631E2EAA67 ~/analysis/test-analysis/data/htt
 p/fakefiles/file.exe
 ```
 
@@ -768,7 +768,7 @@ Check `INetSim` logs on `Analysis Machine`, we found the malware do the followin
 
 It asks to pay to the bitcoin address `17ojq6Bo8PGSEtUF9xuELqfh5o4Ppj4sJy`.
 
-> t seems like the malware generates an unique bitcoin address for each infected computer, since the address didn’t receive or send out any money.
+> t seems like the malware generates a unique bitcoin address for each infected computer, since the address didn’t receive or send out any money.
 
 Now, you can recover the `Victim 2` by restoring its previous clean-state snapshot.
 
