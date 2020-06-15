@@ -446,7 +446,7 @@ It is the role `Burp` plays in an SSL interception attack:
 Start `Burp` with root privilege, otherwise, it cannot access port 443:
 
 ```
-$ cd ~/BurpSuiteCommunity
+$ 
 $ su
 # sudo ./BurpSuiteCommunity
 ```
@@ -677,8 +677,100 @@ Extract all files:
 unzip theZoo-master.zip
 ```
 
+All files (including some malware instances in `theZoo`) are now in `./theZoo-master`. Enter the path of `loki`, try to scan the directory to find if malware exists:
 
+```
+sudo python loki.py -p ~/Downloads/theZoo-master
+```
 
+Of course, nothing found.
+
+![](./fig/loki_path.png)
+
+Find the TeslaCrypt ransomware 
+
+```
+cd ~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt
+unzip Ransomware.TeslaCrypt.zip
+```
+
+password (`injected`) is in `~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt/Ransomware.TeslaCrypt.pass`. It contains three different files that can be used as `exe`.
+
+Now, restart `loki` to scan this subdirectory:
+
+```
+sudo python loki.py -p ~/Downloads/theZoo-master/malwares/Binaries/Ransomware.TeslaCrypt
+```
+
+It found out that one of them is suspicious by matching the hash value:
+
+![](./fig/loki_subdir.png)
+
+Copy one undetected extracted file to `INetSim` server's data folder:
+
+```
+cp 51B4EF5DC9D26B7A26E214CEE90598631E2EAA67 ~/analysis/test-analysis/data/htt
+p/fakefiles/file.exe
+```
+
+Edit the corresponding line in its `inetsim.conf` as
+
+```
+http_fakefile exe  file.exe x-msdos-program
+```
+
+Start `INetSim`.
+
+### Send the malicious `exe` to `Victim 2`
+
+Turn to `Victim 2`, turn off all defenses and firewalls on it.
+
+Broswer any HTTP address with suffix `.exe` (e.g. `http://google.com/something.exe`), download it:
+
+![](./fig/download_exe.png)
+
+Use `loki` to scan the directory where the downloaded files store:
+
+```
+> ./loki.exe -p C:/Users/IEUser/Downloads
+```
+
+No alerts at all.
+
+![](./fig/false_warning.png)
+
+Execute it!
+
+Somehow, it cannot infect any file in Win 10 like Win 7, maybe the lastest version has patched up the vulnerability. It will be suspended automatically after executing.
+
+![](./fig/task_manager.png)
+
+When we host the alerted file `3372c1edab46837f1e973164fa2d726c5c5e17bcb888828ccd7c4dfcc234a370` on `INetSim` server on `Analysis Machine` and Use `Victim 2` to download it, `loki` can detect it:
+
+![](./fig/win_loki_alert.png)
+
+Run the dangerous `exe`. It works. After a few seconds, files are infected and encrypted:
+
+![](./fig/infect.png)
+
+As expected, `loki` cannot run now.
+
+Check `INetSim` logs on `Analysis Machine`, we found the malware do the following DNS lookups:
+
+```
+2020-06-15 01:33:09  DNS connection, type: A, class: IN, requested name: 7tno4hib47vlep5o.tor2web.org
+2020-06-15 01:33:11  DNS connection, type: A, class: IN, requested name: 7tno4hib47vlep5o.tor2web.blutmagie.de
+2020-06-15 01:33:12  DNS connection, type: A, class: IN, requested name: 7tno4hib47vlep5o.tor2web.fi
+2020-06-15 01:33:12  Last simulated date in log file
+```
+
+> We see similar requests are made to `tor2web.org`, `tor2web.blutmagie.de` and `tor2web.fi`. Those services allow to access the Tor network without having to install Tor Browser or a similar tool.
+
+It asks to pay to the bitcoin address `17ojq6Bo8PGSEtUF9xuELqfh5o4Ppj4sJy`.
+
+> t seems like the malware generates an unique bitcoin address for each infected computer, since the address didn’t receive or send out any money.
+
+Now, you can recover the `Victim 2` by restoring its previous clean-state snapshot.
 
 
 ## References
