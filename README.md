@@ -1,5 +1,13 @@
 # An Advanced Persistent Threat Simulation Example under Loki Detection
 
+[![platform1](https://img.shields.io/static/v1?label=Ubuntu&message=16.04&color=critical&style=flat-square)](https://www.osboxes.org/ubuntu/)
+[![platform2](https://img.shields.io/static/v1?label=Windows&message=10&color=0093AF&style=flat-square)](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/)
+[![Loki](https://img.shields.io/static/v1?label=Loki&message=0.30.7&color=008000&style=flat-square)](https://github.com/Neo23x0/Loki)
+[![INetSim](https://img.shields.io/static/v1?label=INetSim&message=1.3.2&color=info&style=flat-square)](https://www.inetsim.org/documentation.html)
+[![yara](https://img.shields.io/static/v1?label=yara&message=OpenSSL&color=important&style=flat-square)](https://github.com/VirusTotal/yara)
+[![Burp](https://img.shields.io/static/v1?label=Burp&message=Community%202020.5&color=yellow&style=flat-square)](https://portswigger.net/burp/communitydownload)
+
+
 - [An Advanced Persistent Threat Simulation Example under Loki Detection](#an-advanced-persistent-threat-simulation-example-under-loki-detection)
   - [Set-up VMs](#set-up-vms)
     - [Basic Ubuntu Analysis](#basic-ubuntu-analysis)
