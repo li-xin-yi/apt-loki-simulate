@@ -2,11 +2,23 @@
 
 [![platform1](https://img.shields.io/static/v1?label=Ubuntu&message=16.04&color=critical&style=flat-square)](https://www.osboxes.org/ubuntu/)
 [![platform2](https://img.shields.io/static/v1?label=Windows&message=10&color=0093AF&style=flat-square)](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/)
+[![yara](https://img.shields.io/static/v1?label=yara&message=OpenSSL&color=important&style=flat-square)](https://github.com/VirusTotal/yara)
 [![Loki](https://img.shields.io/static/v1?label=Loki&message=0.30.7&color=008000&style=flat-square)](https://github.com/Neo23x0/Loki)
 [![INetSim](https://img.shields.io/static/v1?label=INetSim&message=1.3.2&color=info&style=flat-square)](https://www.inetsim.org/documentation.html)
-[![yara](https://img.shields.io/static/v1?label=yara&message=OpenSSL&color=important&style=flat-square)](https://github.com/VirusTotal/yara)
 [![Burp](https://img.shields.io/static/v1?label=Burp&message=Community%202020.5&color=yellow&style=flat-square)](https://portswigger.net/burp/communitydownload)
+[![Malware](https://img.shields.io/static/v1?label=TeslaCrypt&message=theZoo&color=critical&style=flat-square)](https://github.com/ytisf/theZoo)
+[![license](https://img.shields.io/github/license/li-xin-yi/apt-loki-simulate?style=flat-square)](./LICENSE)
+[![](https://img.shields.io/static/v1?label=Origin%20Blog&message=Christophe%20Tafani-Dereeper&color=734F96&style=flat-square)](https://blog.christophetd.fr/malware-analysis-lab-with-virtualbox-inetsim-and-burp/)
 
+This repo follows [this blog](https://blog.christophetd.fr/malware-analysis-lab-with-virtualbox-inetsim-and-burp/) and creates a group of VMs in such an isolated virtual network:
+
+![](https://blog.christophetd.fr/wp-content/uploads/2017/06/malwarenet4.png)
+
+Use `INetSim` (for HTTP/DNS) and `Burp` (for HTTPS) on `Analysis Machine` to simulate the malicious traffic hijack and transfer `TeslaCrypt` (which is a malware) to Windows Victim, which finally makes it infected.
+
+During transferring `TeslaCrypt`, `Loki` **can detect one of the `TeslaCrypt` samples**, which means it works but is not so useful for scanning malware, even weaker than built-in Windows Defender.
+
+Anyway, the structural VM group we built can leave for other malware analysis in the future.
 
 - [An Advanced Persistent Threat Simulation Example under Loki Detection](#an-advanced-persistent-threat-simulation-example-under-loki-detection)
   - [Set-up VMs](#set-up-vms)
